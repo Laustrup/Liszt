@@ -1,9 +1,24 @@
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
-public class Liszt implements List {
+/*
 
-    Object[] list = new Object[0];
-    Map<String,Object> map;
+    Implements same objects from ArrayList except AbstractList<E>
+
+    Has attributes of an array of E and as well an Map, which needs to be determined whether it's a hashmap or treemap.
+    That way an object of E can quickly be returned and the whole array can be looped thru easily
+
+ */
+
+// Author Laust Eberhardt Bonnesen
+public class Liszt<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+
+    private E[] list;
+    private Map<String,E> map;
 
     public Liszt(boolean isHashMap) {
         if (isHashMap) {
@@ -12,133 +27,132 @@ public class Liszt implements List {
         else {
             map = new TreeMap<>();
         }
+        list = (E[]) new Object[0];
     }
 
-    public Liszt(boolean isHashMap, Object[] values) {
+    public Liszt(boolean isHashMap, E[] firstValues) {
         if (isHashMap) {
             map = new HashMap<>();
         }
         else {
             map = new TreeMap<>();
         }
-        add(values);
+        list = (E[]) new Object[0];
+        list = addArray(firstValues);
     }
 
     @Override
     public int size() {
-
-        int amounts = 0;
-
-        for (int i = 0; i < list.length; i++) {
-            amounts++;
-        }
-
-        return amounts;
+        return list.length;
     }
 
     @Override
     public boolean isEmpty() {
-
-        for (int i = 0; i < list.length; i++) {
-            if (list[i] != null) {
-                return false;
-            }
-        }
-            return true;
-
+        return size()==0;
     }
 
     @Override
     public boolean contains(Object o) {
-        for (int i = 0; i < list.length; i++) {
-            if (list[i] == o) {
-                return true;
-            }
-        }
-        return false;
+        return indexOf(o) >= 0;
     }
 
+    public boolean containsKey(String key) {
+        return map.containsKey(key);
+    }
+
+    // TODO
     @Override
-    public Iterator iterator() {
-        //Todo
+    public Iterator<E> iterator() {
         return null;
+    }
+
+    // TODO
+    @Override
+    public void forEach(Consumer<? super E> action) {
+
     }
 
     @Override
     public Object[] toArray() {
-
-        int index = 0;
-        Object[] arr = new Object[list.length+1];
-
-        while (list[index] != null) {
-            arr[index] = list[index];
-            index++;
-        }
-
-        return arr;
+        return new Object[0];
     }
 
     @Override
-    public boolean add(Object o) {
-        Object[] arr;
-
-        arr = list;
-        arr[list.length+2] = o;
-
-        return true;
+    public <T> T[] toArray(T[] a) {
+        return null;
     }
 
-    public boolean add(Object[] o) {
-        Object[] arr;
+    @Override
+    public <T> T[] toArray(IntFunction<T[]> generator) {
+        return null;
+    }
 
-        arr = list;
-        for (int i = 0; i < o.length;i++) {
-        arr[list.length+2+i] = o;
+    @Override
+    public boolean add(E e) {
+        return false;
+    }
+
+    //Adds an entire array of E at the end of the current array
+    public E[] addArray(E[] objects) {
+        Object[] allIndexs = new Object[list.length+objects.length];
+        for (int i = 0; i < allIndexs.length;i++) {
+            if (i < list.length) {
+                allIndexs[i] = list[i];
+            }
+            else {
+                for (int j = 0; j < objects.length;j++) {
+                    allIndexs[i+j] = objects[j];
+                }
+                break;
+            }
         }
-
-        return true;
+        list = (E[]) allIndexs;
+        return list;
     }
 
     @Override
     public boolean remove(Object o) {
-
-        boolean isFound = false;
-        int index = 0;
-        Object[] newArr = new Object[list.length];
-
-        while (!isFound) {
-            if (list[index] == o) {
-                for (int i = 0; i < index; i++) {
-                    newArr[i] = list[i];
-                }
-                if (index+1 < list.length) {
-                    for (int i = index + 1; i < list.length; i++) {
-                        newArr[i] = list[i];
-                    }
-                }
-
-                list = newArr;
-                isFound = true;
-            }
-
-            if (index == list.length) {
-                break;
-            }
-
-            index++;
-        }
-
-        return isFound;
-    }
-
-    @Override
-    public boolean addAll(Collection c) {
         return false;
     }
 
     @Override
-    public boolean addAll(int index, Collection c) {
+    public boolean containsAll(Collection<?> c) {
         return false;
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+        return false;
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends E> c) {
+        return false;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        return false;
+    }
+
+    @Override
+    public boolean removeIf(Predicate<? super E> filter) {
+        return false;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        return false;
+    }
+
+    @Override
+    public void replaceAll(UnaryOperator<E> operator) {
+
+    }
+
+    @Override
+    public void sort(Comparator<? super E> c) {
+
     }
 
     @Override
@@ -147,28 +161,34 @@ public class Liszt implements List {
     }
 
     @Override
-    public Object get(int index) {
+    public E get(int index) {
         return null;
     }
 
     @Override
-    public Object set(int index, Object element) {
+    public E set(int index, E element) {
         return null;
     }
 
     @Override
-    public void add(int index, Object element) {
+    public void add(int index, E element) {
 
     }
 
     @Override
-    public Object remove(int index) {
+    public E remove(int index) {
         return null;
     }
 
+    // Runs through the array, and if the object is identical the an index, it returns an int of that object's index
     @Override
     public int indexOf(Object o) {
-        return 0;
+        for (int i = 0; i < size(); i++) {
+            if (o.equals(list[i])) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
@@ -177,37 +197,32 @@ public class Liszt implements List {
     }
 
     @Override
-    public ListIterator listIterator() {
+    public ListIterator<E> listIterator() {
         return null;
     }
 
     @Override
-    public ListIterator listIterator(int index) {
+    public ListIterator<E> listIterator(int index) {
         return null;
     }
 
     @Override
-    public List subList(int fromIndex, int toIndex) {
+    public List<E> subList(int fromIndex, int toIndex) {
         return null;
     }
 
     @Override
-    public boolean retainAll(Collection c) {
-        return false;
+    public Spliterator<E> spliterator() {
+        return null;
     }
 
     @Override
-    public boolean removeAll(Collection c) {
-        return true;
+    public Stream<E> stream() {
+        return null;
     }
 
     @Override
-    public boolean containsAll(Collection c) {
-        return false;
-    }
-
-    @Override
-    public Object[] toArray(Object[] a) {
-        return new Object[0];
+    public Stream<E> parallelStream() {
+        return null;
     }
 }
