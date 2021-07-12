@@ -2,6 +2,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class LisztTest {
@@ -10,7 +11,7 @@ class LisztTest {
 
     @BeforeEach
     public void beforeEach() {
-        liszt = new Liszt<>(true);
+        liszt = new Liszt<>();
     }
 
     @ParameterizedTest
@@ -37,7 +38,7 @@ class LisztTest {
 
         //Assert
         for (int i = 0; i < indexs;i++) {
-            assertEquals(actuals[i],inputs[i]);
+            assertEquals(inputs[i],actuals[i]);
         }
     }
 
@@ -56,7 +57,7 @@ class LisztTest {
         int actual = liszt.indexOf(expected);
 
         //Assert
-        assertEquals(actual,expected);
+        assertEquals(expected,actual);
     }
 
 }

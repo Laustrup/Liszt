@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 /*
 
-    Implements same objects from ArrayList except AbstractList<E>
+    Implements same objects as ArrayList at this moment
 
     Has attributes of an array of E and as well an Map, which needs to be determined whether it's a hashmap or treemap.
     That way an object of E can quickly be returned and the whole array can be looped thru easily
@@ -15,71 +15,108 @@ import java.util.stream.Stream;
  */
 
 // Author Laust Eberhardt Bonnesen
-public class Liszt<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
+public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
 
-    private E[] list;
     private Map<String,E> map;
+    private transient Object[] elementData;
+    private int size;
 
-    public Liszt(boolean isHashMap) {
+    public Liszt() {
+        this(true,1);
+    }
+
+    public Liszt(boolean isHashMap, int size) {
+        super();
+        this.size = size;
         if (isHashMap) {
             map = new HashMap<>();
         }
         else {
             map = new TreeMap<>();
         }
-        list = (E[]) new Object[0];
+        this.elementData = new Object[this.size];
     }
 
     public Liszt(boolean isHashMap, E[] firstValues) {
+        super();
         if (isHashMap) {
             map = new HashMap<>();
         }
         else {
             map = new TreeMap<>();
         }
-        list = (E[]) new Object[0];
-        list = addArray(firstValues);
+        this.elementData = addArray(firstValues);
     }
 
+    //Both these two next methods returns the size of the array, but allows the command length that are of an array[]
     @Override
     public int size() {
-        return list.length;
+        return size;
+    }
+
+    public int length() {
+        return elementData.length;
     }
 
     @Override
     public boolean isEmpty() {
-        return size()==0;
+        return size==0;
     }
 
     @Override
-    public boolean contains(Object o) {
-        return indexOf(o) >= 0;
+    public boolean contains(Object object) {
+        return indexOf(object) >= 0;
     }
 
-    public boolean containsKey(String key) {
+    public boolean contains(String key) {
         return map.containsKey(key);
     }
 
-    // TODO
+    //To insure that an object is registered in map
+    public boolean isObjectInMap(String key, Object object) {
+        if (contains(key) && contains(object)) {
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public Iterator<E> iterator() {
-        return null;
+        return (Iterator<E>) this;
     }
 
     // TODO
     @Override
     public void forEach(Consumer<? super E> action) {
-
+        Objects.requireNonNull(action);
+        final int expectedModCount = modCount;
+        @SuppressWarnings("unchecked")
+        final E[] elementData = (E[]) this.elementData;
+        final int size = this.size;
+        for (int i=0; modCount == expectedModCount && i < size; i++) {
+            action.accept(elementData[i]);
+        }
+        if (modCount != expectedModCount) {
+            throw new ConcurrentModificationException();
+        }
     }
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        return Arrays.copyOf(elementData, size);
     }
 
     @Override
-    public <T> T[] toArray(T[] a) {
-        return null;
+    public <T> T[] toArray(T[] array) {
+        // Make a new array of a's runtime type, but my contents:
+        if (array.length < size) {
+            return (T[]) Arrays.copyOf(elementData, size, array.getClass());
+        }
+        System.arraycopy(elementData, 0, array, 0, size);
+        if (array.length > size) {
+            array[size] = null;
+        }
+        return array;
     }
 
     @Override
@@ -157,7 +194,8 @@ public class Liszt<E> implements List<E>, RandomAccess, Cloneable, java.io.Seria
 
     @Override
     public void clear() {
-
+        list = (E[]) new Object[0];
+        map.clear();
     }
 
     @Override
@@ -175,16 +213,81 @@ public class Liszt<E> implements List<E>, RandomAccess, Cloneable, java.io.Seria
 
     }
 
+    //Removes the index in the array of the parameter input, and returns the E of that is removed. It sorts the array as well
     @Override
     public E remove(int index) {
-        return null;
+        E[] newList = (E[]) new Object[list.length-1];
+        E elementOfDelete = (E) new Object();
+
+        for (int i = 0; i < list.length-1;i++) {
+            if(i<index) {
+                newList[i] = list[i];
+            }
+            else if (i>index) {
+                newList[i] = list[i+1];
+            }
+            else {
+                elementOfDelete = list[i];
+            }
+        }
+        list = newList;
+        return elementOfDelete;
     }
 
-    // Runs through the array, and if the object is identical the an index, it returns an int of that object's index
+    public E remove(int index,String key) {
+        E[] newList = (E[]) new Object[list.length-1];
+        E elementOfDelete = (E) new Object();
+
+        for (int i = 0; i < list.length-1;i++) {
+            if(i<index) {
+                newList[i] = list[i];
+            }
+            else if (i>index) {
+                newList[i] = list[i+1];
+            }
+            else {
+                elementOfDelete = list[i];
+            }
+        }
+        list = newList;
+
+        map.remove(key);
+
+        return elementOfDelete;
+    }
+
+    public E[] removeIndexs(int[] indexs,String[] keys) {
+        E[] newList = (E[]) new Object[list.length-indexs.length];
+        E[] elementsToDelete = (E[]) new Object[indexs.length];
+
+        int amountsOfDeletes = 0;
+
+        for (int i = 0; i < list.length-1;i++) {
+            if(i<indexs[i]) {
+                newList[i] = list[i];
+            }
+            else if (i!=indexs[i]) {
+                newList[i] = list[i+amountsOfDeletes];
+            }
+            else {
+                elementsToDelete[i] = list[i];
+                amountsOfDeletes++;
+            }
+        }
+        list = newList;
+
+        for (int i = 0; i < keys.length;i++) {
+            map.remove(keys[i]);
+        }
+
+        return elementsToDelete;
+    }
+
+    //Runs through the array, and if the object is identical the to an index, it returns an int of that object's index
     @Override
-    public int indexOf(Object o) {
+    public int indexOf(Object object) {
         for (int i = 0; i < size(); i++) {
-            if (o.equals(list[i])) {
+            if (object.equals(list[i])) {
                 return i;
             }
         }
