@@ -18,8 +18,14 @@ import java.util.stream.Stream;
 public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
 
     private Map<String,E> map;
-    private transient Object[] elementData;
+
     private int size;
+    private int defaultKeyIndex = 0;
+
+    private transient Object[] elementData;
+    private static final Object[] EMPTY_ELEMENTDATA = {};
+    private static final int DEFAULT_CAPACITY = 10;
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE;
 
     public Liszt() {
         this(true,1);
@@ -85,7 +91,6 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         return (Iterator<E>) this;
     }
 
-    // TODO
     @Override
     public void forEach(Consumer<? super E> action) {
         Objects.requireNonNull(action);
@@ -119,33 +124,77 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         return array;
     }
 
+    //TODO
     @Override
     public <T> T[] toArray(IntFunction<T[]> generator) {
         return null;
     }
 
+    //TODO Check if size++ changes size attribute as well
     @Override
-    public boolean add(E e) {
-        return false;
+    public boolean add(E element) {
+        ensureCapacityInternal(size + 1);  // Increments modCount!!
+        elementData[size++] = element;
+        map.put("Default key" + defaultKeyIndex++,element);
+        return true;
     }
 
     //Adds an entire array of E at the end of the current array
     public E[] addArray(E[] objects) {
-        Object[] allIndexs = new Object[list.length+objects.length];
-        for (int i = 0; i < allIndexs.length;i++) {
-            if (i < list.length) {
-                allIndexs[i] = list[i];
-            }
-            else {
-                for (int j = 0; j < objects.length;j++) {
-                    allIndexs[i+j] = objects[j];
-                }
-                break;
-            }
+        int amountOfIndexs = size + objects.length;
+        ensureCapacityInternal(amountOfIndexs);  // Increments modCount!!
+        for (int i = 0; i < amountOfIndexs;i++) {
+            elementData[size++] = objects;
+            map.put("Default key" + defaultKeyIndex++,objects[i]);
         }
-        list = (E[]) allIndexs;
-        return list;
+        return (E[]) elementData;
     }
+
+    private void ensureCapacityInternal(int minCapacity) {
+        if (elementData == EMPTY_ELEMENTDATA) {
+            minCapacity = Math.max(DEFAULT_CAPACITY, minCapacity);
+        }
+
+        ensureExplicitCapacity(minCapacity);
+    }
+
+    private void ensureExplicitCapacity(int minCapacity) {
+        modCount++;
+
+        // overflow-conscious code
+        if (minCapacity - elementData.length > 0) {
+            grow(minCapacity);
+        }
+    }
+
+    private void grow(int minCapacity) {
+        // overflow-conscious code
+        int oldCapacity = elementData.length;
+        int newCapacity = oldCapacity + (oldCapacity >> 1);
+        if (newCapacity - minCapacity < 0) {
+            newCapacity = minCapacity;
+        }
+        if (newCapacity - MAX_ARRAY_SIZE > 0) {
+            newCapacity = hugeCapacity(minCapacity);
+        }
+        else {
+            System.err.println("\nMax amounts of indexs reached in Liszt...\n");
+        }
+        // minCapacity is usually close to size, so this is a win:
+        elementData = Arrays.copyOf(elementData, newCapacity);
+    }
+
+    private static int hugeCapacity(int minCapacity) {
+        // overflow
+        if (minCapacity < 0) {
+            System.err.println("\nOut of memory...\n");
+            throw new OutOfMemoryError();
+        }
+        return (minCapacity > MAX_ARRAY_SIZE) ?
+                Integer.MAX_VALUE :
+                MAX_ARRAY_SIZE;
+    }
+
 
     @Override
     public boolean remove(Object o) {
