@@ -20,7 +20,8 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     private Map<String,E> map;
 
     private int size;
-    private int defaultKeyIndex = 0;
+
+    private String defaultKeySymbol = "Д";
 
     private transient Object[] elementData;
     private static final Object[] EMPTY_ELEMENTDATA = {};
@@ -135,7 +136,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     public boolean add(E element) {
         ensureCapacityInternal(size + 1);  // Increments modCount!!
         elementData[size++] = element;
-        map.put("Default key" + defaultKeyIndex++,element);
+        map.put(defaultKeySymbol+size,element);
         return true;
     }
 
@@ -145,10 +146,21 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         ensureCapacityInternal(amountOfIndexs);  // Increments modCount!!
         for (int i = 0; i < amountOfIndexs;i++) {
             elementData[size++] = objects;
-            map.put("Default key" + defaultKeyIndex++,objects[i]);
+            map.put(defaultKeySymbol+size,objects[i]);
         }
         return (E[]) elementData;
     }
+
+    public E[] addArray(E[] objects, String[] keys) {
+        int amountOfIndexs = size + objects.length;
+        ensureCapacityInternal(amountOfIndexs);  // Increments modCount!!
+        for (int i = 0; i < amountOfIndexs;i++) {
+            elementData[size++] = objects;
+            map.put(keys[i],objects[i]);
+        }
+        return (E[]) elementData;
+    }
+
 
     private void ensureCapacityInternal(int minCapacity) {
         if (elementData == EMPTY_ELEMENTDATA) {
@@ -176,9 +188,6 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         }
         if (newCapacity - MAX_ARRAY_SIZE > 0) {
             newCapacity = hugeCapacity(minCapacity);
-        }
-        else {
-            System.err.println("\nMax amounts of indexs reached in Liszt...\n");
         }
         // minCapacity is usually close to size, so this is a win:
         elementData = Arrays.copyOf(elementData, newCapacity);
@@ -243,7 +252,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
 
     @Override
     public void clear() {
-        list = (E[]) new Object[0];
+        elementData = (E[]) new Object[0];
         map.clear();
     }
 
@@ -265,78 +274,78 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     //Removes the index in the array of the parameter input, and returns the E of that is removed. It sorts the array as well
     @Override
     public E remove(int index) {
-        E[] newList = (E[]) new Object[list.length-1];
-        E elementOfDelete = (E) new Object();
+        Object[] newList = new Object[size-1];
+        Object elementOfDelete = new Object();
 
-        for (int i = 0; i < list.length-1;i++) {
+        for (int i = 0; i < size-1;i++) {
             if(i<index) {
-                newList[i] = list[i];
+                newList[i] = elementData[i];
             }
             else if (i>index) {
-                newList[i] = list[i+1];
+                newList[i] = elementData[i+1];
             }
             else {
-                elementOfDelete = list[i];
+                elementOfDelete = elementData[i];
             }
         }
-        list = newList;
-        return elementOfDelete;
+        elementData = newList;
+
+        return (E) elementOfDelete;
     }
 
     public E remove(int index,String key) {
-        E[] newList = (E[]) new Object[list.length-1];
-        E elementOfDelete = (E) new Object();
+        Object[] newList =  new Object[size-1];
+        Object elementOfDelete =  new Object();
 
-        for (int i = 0; i < list.length-1;i++) {
+        for (int i = 0; i < size-1;i++) {
             if(i<index) {
-                newList[i] = list[i];
+                newList[i] = elementData[i];
             }
             else if (i>index) {
-                newList[i] = list[i+1];
+                newList[i] = elementData[i+1];
             }
             else {
-                elementOfDelete = list[i];
+                elementOfDelete = elementData[i];
             }
         }
-        list = newList;
-
+        elementData = newList;
         map.remove(key);
 
-        return elementOfDelete;
+        return (E)elementOfDelete;
     }
 
     public E[] removeIndexs(int[] indexs,String[] keys) {
-        E[] newList = (E[]) new Object[list.length-indexs.length];
-        E[] elementsToDelete = (E[]) new Object[indexs.length];
+        Object[] newList = new Object[size-indexs.length];
+        Object[] elementsToDelete = new Object[indexs.length];
 
         int amountsOfDeletes = 0;
 
-        for (int i = 0; i < list.length-1;i++) {
+        for (int i = 0; i < elementsToDelete.length-1;i++) {
             if(i<indexs[i]) {
-                newList[i] = list[i];
+                newList[i] = elementData[i];
             }
             else if (i!=indexs[i]) {
-                newList[i] = list[i+amountsOfDeletes];
+                newList[i] = elementData[i+amountsOfDeletes];
             }
             else {
-                elementsToDelete[i] = list[i];
+                elementsToDelete[i] = elementData[i];
                 amountsOfDeletes++;
             }
         }
-        list = newList;
+        elementData = newList;
 
         for (int i = 0; i < keys.length;i++) {
             map.remove(keys[i]);
         }
 
-        return elementsToDelete;
+        return (E[]) elementsToDelete;
     }
 
     //Runs through the array, and if the object is identical the to an index, it returns an int of that object's index
     @Override
     public int indexOf(Object object) {
         for (int i = 0; i < size(); i++) {
-            if (object.equals(list[i])) {
+            if (object.equals(elementData[i])) {
                 return i;
             }
         }
