@@ -62,6 +62,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         else {
             mapData = new TreeMap<>();
         }
+        this.elementData = new Object[initializingValues.length];
         this.elementData = addArray(initializingValues);
     }
 
@@ -371,18 +372,21 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         return (E[]) elementsToDelete;
     }
 
-    //Runs through the array, and if the object is identical the to an index, it returns an int of that object's index
+    //Runs through the array, and if the object is identical to an index, it returns an int of that object's index
     @Override
     public int indexOf(Object object) {
         if (object == null) {
-            for (int i = 0; i < size; i++)
-                if (elementData[i]==null)
-                    return i;
+            for (int i = 0; i < size; i++) {
+                if (elementData[i]==null) {
+                    return i+1;
+                }
+            }
         }
         else {
-            for (int i = 0; i < size(); i++) {
+            for (int i = 0; i < size; i++) {
+                // todo elementData shows location not value
                 if (object.equals(elementData[i])) {
-                    return i;
+                    return i+1;
                 }
             }
         }
@@ -390,7 +394,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     }
 
     @Override
-    public int lastIndexOf(Object o) {
+    public int lastIndexOf(Object object) {
         return 0;
     }
 

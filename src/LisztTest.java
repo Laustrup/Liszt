@@ -47,8 +47,8 @@ class LisztTest {
     public void indexOfTest(int indexs, int expected) {
         //Arrange
         Object[] objects = new Object[indexs];
-        for (int i = 0;i < indexs;i++) {
-            objects[i] = i;
+        for (int i = 0; i < indexs;i++) {
+            objects[i] = i+1;
         }
 
         //Act
