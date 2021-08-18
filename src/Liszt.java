@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -24,6 +23,8 @@ import java.util.stream.Stream;
 // Author Laust Eberhardt Bonnesen
 public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
 
+    private static final long serialVersion = 101;
+
     private Map<String,E> mapData;
 
     private int size;
@@ -33,9 +34,10 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     private static final int DEFAULT_CAPACITY = 1;
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE;
 
-    // Default constructor, that automatically makes the mapData an HashMap and the size 1
+
+    // Default constructor, that automatically makes the mapData an HashMap and the size 0
     public Liszt() {
-        this(true,1);
+        this(true,0);
     }
 
     // An constructor that will determine size and whether it's an HashMap or not
@@ -48,7 +50,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         else {
             mapData = new TreeMap<>();
         }
-        this.elementData = new Object[this.size+1];
+        this.elementData = new Object[this.size];
     }
 
     // Alternatively this is for already existing values when initialyzing
@@ -63,7 +65,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         this.elementData = addArray(initializingValues);
     }
 
-    // Both these two next methods returns the size of the array, but allows the command length that are of an array[]
+    // Both these two next methods returns the size of the array, but allows the method length that are of an array[]
     @Override
     public int size() {
         return size;
@@ -95,24 +97,10 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
         return false;
     }
 
+    // TODO
     @Override
     public Iterator<E> iterator() {
-        return (Iterator<E>) this;
-    }
-
-    @Override
-    public void forEach(Consumer<? super E> action) {
-        Objects.requireNonNull(action);
-        final int expectedModCount = modCount;
-        @SuppressWarnings("unchecked")
-        final E[] elementData = (E[]) this.elementData;
-        final int size = this.size;
-        for (int i=0; modCount == expectedModCount && i < size; i++) {
-            action.accept(elementData[i]);
-        }
-        if (modCount != expectedModCount) {
-            throw new ConcurrentModificationException();
-        }
+        return null;
     }
 
     @Override
@@ -150,7 +138,8 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
 
     // Adds an entire array of E at the end of the current array
     public E[] addArray(E[] objects) {
-        int amountOfIndexs = size + objects.length;
+        int amountOfIndexs = objects.length;;
+
         ensureCapacityInternal(amountOfIndexs);  // Increments modCount!!
         for (int i = 0; i < amountOfIndexs;i++) {
             elementData[size++] = objects;
@@ -160,7 +149,7 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     }
 
     public E[] addArray(E[] objects, String[] keys) {
-        int amountOfIndexs = size + objects.length;
+        int amountOfIndexs = objects.length;
         ensureCapacityInternal(amountOfIndexs);  // Increments modCount!!
         for (int i = 0; i < amountOfIndexs;i++) {
             elementData[size++] = objects;
@@ -433,5 +422,9 @@ public class Liszt<E> extends AbstractList<E> implements List<E>, RandomAccess, 
     @Override
     public Stream<E> parallelStream() {
         return null;
+    }
+
+    public static long getSerialNumber() {
+        return serialVersion;
     }
 }

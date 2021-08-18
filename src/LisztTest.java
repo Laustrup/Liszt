@@ -42,8 +42,7 @@ class LisztTest {
         }
     }
 
-
-        @ParameterizedTest
+    @ParameterizedTest
     @CsvSource(value = {"1|1", "2|1", "2|2", "3|1", "3|2", "3|3"}, delimiter = '|')
     public void indexOfTest(int indexs, int expected) {
         //Arrange
@@ -59,5 +58,4 @@ class LisztTest {
         //Assert
         assertEquals(expected,actual);
     }
-
 }
